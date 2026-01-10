@@ -44,7 +44,7 @@ const Navbar = () => {
           onClick={() => goTo("/")}
           className="cursor-pointer text-xl font-extrabold tracking-wider bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent"
         >
-          ONE GRAM GOLD
+          ONE GRAM gold
         </div>
 
         {/* Desktop Menu */}

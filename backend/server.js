@@ -16,6 +16,10 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/products", require("./routes/product.routes"));
+app.use("/api/cart", require("./routes/cart.routes"));
+
+
 
 // Root Route
 app.get("/", (req, res) => {

@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { AppContext } from "../context/AppContext";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
 
-  // close mobile menu on outside click
+  const { cartCount } = useContext(AppContext);
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -14,10 +16,10 @@ const Navbar = () => {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // helper for navigation
   const goTo = (path) => {
     navigate(path);
     setMenuOpen(false);
@@ -27,7 +29,7 @@ const Navbar = () => {
     <nav className="fixed top-0 left-0 w-full z-50 bg-black border-b border-yellow-500/20">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
 
-        {/* Mobile Menu Button */}
+        {/* Mobile Menu */}
         <button
           className="md:hidden text-yellow-400"
           onClick={() => setMenuOpen(true)}
@@ -49,15 +51,16 @@ const Navbar = () => {
 
         {/* Desktop Menu */}
         <ul className="hidden md:flex gap-8 text-sm font-medium text-white">
-          <li onClick={() => goTo("/")} className="cursor-pointer hover:text-yellow-400 transition">Home</li>
-          <li onClick={() => goTo("/collections")} className="cursor-pointer hover:text-yellow-400 transition">Collections</li>
-          <li onClick={() => goTo("/new-arrivals")} className="cursor-pointer hover:text-yellow-400 transition">New Arrivals</li>
-          <li onClick={() => goTo("/about")} className="cursor-pointer hover:text-yellow-400 transition">About</li>
-          <li onClick={() => goTo("/contact")} className="cursor-pointer hover:text-yellow-400 transition">Contact</li>
+          <li onClick={() => goTo("/")} className="hover:text-yellow-400 cursor-pointer">Home</li>
+          <li onClick={() => goTo("/collections")} className="hover:text-yellow-400 cursor-pointer">Collections</li>
+          <li onClick={() => goTo("/new-arrivals")} className="hover:text-yellow-400 cursor-pointer">New Arrivals</li>
+          <li onClick={() => goTo("/about")} className="hover:text-yellow-400 cursor-pointer">About</li>
+          <li onClick={() => goTo("/contact")} className="hover:text-yellow-400 cursor-pointer">Contact</li>
         </ul>
 
         {/* Right Icons */}
         <div className="flex items-center gap-4">
+
           {/* Account */}
           <button
             onClick={() => goTo("/account")}
@@ -72,7 +75,10 @@ const Navbar = () => {
           </button>
 
           {/* Cart */}
-          <button className="text-yellow-400 hover:scale-110 transition">
+          <button
+            onClick={() => goTo("/cart")}
+            className="relative text-yellow-400 hover:scale-110 transition"
+          >
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M3 3h2l.4 2M7 13h10l4-8H5.4
@@ -81,6 +87,12 @@ const Navbar = () => {
                 M17 21a1 1 0 100-2"
               />
             </svg>
+
+            {cartCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 rounded-full">
+                {cartCount}
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -91,34 +103,24 @@ const Navbar = () => {
           ref={menuRef}
           className="fixed top-0 left-0 h-full w-[70vw] bg-black/95 px-6 py-6 space-y-6 shadow-xl md:hidden"
         >
-          {/* Close */}
           <button
-            className="text-yellow-400 mb-4"
+            className="text-yellow-400"
             onClick={() => setMenuOpen(false)}
           >
             ✕
           </button>
 
-          {/* Search */}
-          <input
-            type="text"
-            placeholder="Search jewellery..."
-            className="w-full px-4 py-3 rounded-full bg-black border border-yellow-500/30 text-white outline-none focus:ring-1 focus:ring-yellow-400"
-          />
-
-          {/* Links */}
           <ul className="space-y-5 text-lg font-medium text-white">
-            <li onClick={() => goTo("/")} className="cursor-pointer hover:text-yellow-400">Home</li>
-            <li onClick={() => goTo("/collections")} className="cursor-pointer hover:text-yellow-400">Collections</li>
-            <li onClick={() => goTo("/new-arrivals")} className="cursor-pointer hover:text-yellow-400">New Arrivals</li>
-            <li onClick={() => goTo("/about")} className="cursor-pointer hover:text-yellow-400">About</li>
-            <li onClick={() => goTo("/contact")} className="cursor-pointer hover:text-yellow-400">Contact</li>
+            <li onClick={() => goTo("/")}>Home</li>
+            <li onClick={() => goTo("/collections")}>Collections</li>
+            <li onClick={() => goTo("/new-arrivals")}>New Arrivals</li>
+            <li onClick={() => goTo("/about")}>About</li>
+            <li onClick={() => goTo("/contact")}>Contact</li>
           </ul>
 
-          {/* Account */}
           <button
             onClick={() => goTo("/account")}
-            className="mt-6 w-full py-3 rounded-xl bg-yellow-400 text-black font-semibold"
+            className="w-full py-3 rounded-xl bg-yellow-400 text-black font-semibold"
           >
             My Account
           </button>

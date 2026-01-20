@@ -3,20 +3,63 @@ import { createContext, useEffect, useState } from "react";
 export const AppContext = createContext(null);
 
 const AppProvider = ({ children }) => {
-      const [isMenuOpen, setIsMenuOpen] = useState(false);
+  /* ------------------ UI STATE ------------------ */
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
- 
-             const [user, setUser] = useState(null);
+  /* ------------------ USER ------------------ */
+  const [user, setUser] = useState(null);
 
-  const [cart, setCart] = useState([]);
-  const [cartCount, setCartCount] = useState(0);
+  /* ------------------ CART ------------------ */
+  const [cart, setCart] = useState(() => {
+    const savedCart = localStorage.getItem("cart");
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
 
   const addToCart = (product) => {
-    setCart((prev) => [...prev, product]);
-    setCartCount((prev) => prev + 1);
+    setCart((prev) => {
+      const existingItem = prev.find(
+        (item) => item.id === product.id
+      );
+
+      if (existingItem) {
+        return prev.map((item) =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+
+      return [...prev, { ...product, quantity: 1 }];
+    });
   };
 
-  const [wishlist, setWishlist] = useState([]);
+  const removeFromCart = (id) => {
+    setCart((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const updateQuantity = (id, quantity) => {
+    if (quantity <= 0) return;
+    setCart((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, quantity } : item
+      )
+    );
+  };
+
+  const cartCount = cart.reduce(
+    (total, item) => total + item.quantity,
+    0
+  );
+
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+  }, [cart]);
+
+  /* ------------------ WISHLIST ------------------ */
+  const [wishlist, setWishlist] = useState(() => {
+    const savedWishlist = localStorage.getItem("wishlist");
+    return savedWishlist ? JSON.parse(savedWishlist) : [];
+  });
 
   const toggleWishlist = (id) => {
     setWishlist((prev) =>
@@ -26,6 +69,11 @@ const AppProvider = ({ children }) => {
     );
   };
 
+  useEffect(() => {
+    localStorage.setItem("wishlist", JSON.stringify(wishlist));
+  }, [wishlist]);
+
+  /* ------------------ PRODUCTS ------------------ */
   const [products] = useState({
     panchalohalu: [
       {
@@ -52,6 +100,7 @@ const AppProvider = ({ children }) => {
     ],
   });
 
+  /* ------------------ MINI PRODUCTS ------------------ */
   const [miniProducts, setMiniProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
 
@@ -87,22 +136,30 @@ const AppProvider = ({ children }) => {
     }, 800);
   }, []);
 
+  /* ------------------ CONTEXT VALUE ------------------ */
   return (
     <AppContext.Provider
       value={{
+        /* UI */
         isMenuOpen,
         setIsMenuOpen,
 
+        /* User */
         user,
         setUser,
 
+        /* Cart */
         cart,
         cartCount,
         addToCart,
+        removeFromCart,
+        updateQuantity,
 
+        /* Wishlist */
         wishlist,
         toggleWishlist,
 
+        /* Products */
         products,
         miniProducts,
         loadingProducts,

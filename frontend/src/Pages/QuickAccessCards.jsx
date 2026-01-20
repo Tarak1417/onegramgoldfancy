@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import Onegramgold from "../Assets/ss.jpg";
 
 const QuickAccessCards = () => {
   return (
@@ -37,7 +38,7 @@ const QuickAccessCards = () => {
           "
         >
           <img
-            src="https://images.unsplash.com/photo-1589987607627-616cac6cbb9c"
+            src={Onegramgold}
             alt="One Gram Gold"
             className="w-full h-full object-cover"
           />

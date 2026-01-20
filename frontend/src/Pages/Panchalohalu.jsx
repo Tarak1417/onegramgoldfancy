@@ -3,9 +3,13 @@ import Navbar from "../Components/Navbar";
 import Category from "../Pages/CategoryChips";
 import { AppContext } from "../context/AppContext";
 import { Heart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
 
 const Panchalohalu = () => {
   const context = useContext(AppContext);
+    const navigate = useNavigate();
+  
 
   // SAFETY CHECK
   if (!context || !context.products) {
@@ -26,6 +30,26 @@ const Panchalohalu = () => {
       <Navbar />
 
       <div className="pt-[70px] px-4 max-w-7xl mx-auto">
+
+        <div className="max-w-md mx-auto mb-4 flex items-center">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center  text-yellow-400 hover:text-yellow-500 transition"
+        >
+          {/* Back Icon */}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          <span className="text-sm font-medium">Back</span>
+        </button>
+      </div>
+
         <Category />
 
         <h1 className="text-2xl font-bold text-gray-900 mb-6">

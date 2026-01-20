@@ -46,9 +46,13 @@ const Account = () => {
             Login / Register
           </button>
 
-          <button className="w-full py-3 rounded-xl bg-black border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10 transition">
-            My Favorites
-          </button>
+          <button
+  onClick={() => navigate("/favorites")}
+  className="w-full py-3 rounded-xl bg-black border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10 transition"
+>
+  My Favorites
+</button>
+
 
           <button className="w-full py-3 rounded-xl bg-black border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10 transition">
             Order History

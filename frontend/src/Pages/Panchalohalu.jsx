@@ -2,164 +2,75 @@ import React, { useContext } from "react";
 import Navbar from "../Components/Navbar";
 import Category from "../Pages/CategoryChips";
 import { AppContext } from "../context/AppContext";
-import { Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Panchalohalu = () => {
-  const context = useContext(AppContext);
+  const { products } = useContext(AppContext);
   const navigate = useNavigate();
 
-  if (!context || !context.products) {
-    return (
-      <div className="pt-24 text-center text-gray-500">
-        Loading collection...
-      </div>
-    );
-  }
-
-  const { products, addToCart, wishlist, toggleWishlist } = context;
   const panchalohaluProducts = products?.panchalohalu || [];
 
   return (
-    <div className="bg-gradient-to-b from-[#FAFAFA] to-[#F2F2F2] min-h-screen">
+    <>
+      {/* Font */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        .font-poppins { font-family: 'Poppins', sans-serif; }
+      `}</style>
+
       <Navbar />
 
-      <div className="pt-[75px] px-4 max-w-7xl mx-auto">
-
-        {/* Back */}
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-1 text-[#B08A2E] hover:text-[#C9A24D] transition mb-4"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          <span className="text-xs font-medium">Back</span>
-        </button>
+      <div className="pt-24 px-6 bg-[#FAFAFA] min-h-screen font-poppins">
 
         <Category />
 
         {/* Heading */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Panchalohalu Collection
-          </h1>
-          <p className="text-xs text-gray-500 mt-1">
-            Divine metals · Temple craftsmanship
-          </p>
-        </div>
+        <h1 className="text-3xl font-medium text-slate-800 text-center mb-2">
+          Panchalohalu Collection
+        </h1>
+        <p className="text-slate-600 text-center mb-10">
+          Divine metals · Temple craftsmanship
+        </p>
 
         {/* Grid */}
-        {panchalohaluProducts.length === 0 ? (
-          <p className="text-center text-gray-500">
-            No products available
-          </p>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {panchalohaluProducts.map((product) => (
-              <div
-                key={product.id}
+        <section className="flex flex-wrap items-center justify-center gap-6">
+          {panchalohaluProducts.map((product) => (
+            <div
+              key={product.id}
+              onClick={() => navigate(`/product/${product.id}`)}
+              className="group w-56 cursor-pointer"
+            >
+              {/* Image */}
+              <img
+                src={product.image}
+                alt={product.name}
                 className="
-                  group bg-white
-                  rounded-2xl overflow-hidden
-                  border border-gray-100
-                  shadow-sm hover:shadow-lg
+                  rounded-lg w-full h-72 object-cover
+                  group-hover:shadow-xl
+                  group-hover:-translate-y-1
                   transition-all duration-300
                 "
-              >
-                {/* Image */}
-                <div className="relative overflow-hidden">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="
-                      h-36 sm:h-40 w-full object-cover
-                      group-hover:scale-105
-                      transition-transform duration-500
-                    "
-                  />
+              />
 
-                  {/* Wishlist */}
-                  <button
-                    onClick={() => toggleWishlist(product.id)}
-                    className="
-                      absolute top-2 right-2
-                      bg-white/80 backdrop-blur
-                      p-1.5 rounded-full
-                      shadow
-                      hover:scale-110 transition
-                    "
-                  >
-                    <Heart
-                      size={16}
-                      className={
-                        wishlist.includes(product.id)
-                          ? "fill-red-500 text-red-500"
-                          : "text-gray-700"
-                      }
-                    />
-                  </button>
-                </div>
+              {/* Name */}
+              <p className="text-sm mt-2 font-medium text-slate-800">
+                {product.name}
+              </p>
 
-                {/* Content */}
-                <div className="p-3 space-y-1.5">
-                  <h2 className="text-xs font-semibold text-gray-900 line-clamp-2">
-                    {product.name}
-                  </h2>
+              {/* Description */}
+              <p className="text-xs text-slate-500 line-clamp-2">
+                {product.description || "Premium Panchalohalu handcrafted idol"}
+              </p>
 
-                  <p className="text-sm font-bold text-[#B08A2E]">
-                    ₹{product.price}
-                  </p>
-
-                  {/* Buttons */}
-                  <div className="flex gap-2 pt-2">
-                    <button
-                      onClick={() => addToCart(product)}
-                      className="
-                        flex-1 py-1.5
-                        text-[11px] font-semibold
-                        rounded-lg
-                        border border-[#C9A24D]
-                        text-[#C9A24D]
-                        hover:bg-[#FAF3E0]
-                        transition
-                      "
-                    >
-                      Cart
-                    </button>
-
-                    <button
-                      className="
-                        flex-1 py-1.5
-                        text-[11px] font-semibold
-                        rounded-lg
-                        bg-gradient-to-r from-[#C9A24D] to-[#B08A2E]
-                        text-white
-                        hover:opacity-90
-                        transition
-                      "
-                    >
-                      Buy
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Footer */}
-        <div className="mt-12 text-center text-xs text-gray-500">
-          ✨ Authentic Panchalohalu · Premium Finish
-        </div>
+              {/* Price */}
+              <p className="text-xl font-semibold text-[#B08A2E] mt-1">
+                ₹{product.price}
+              </p>
+            </div>
+          ))}
+        </section>
       </div>
-    </div>
+    </>
   );
 };
 

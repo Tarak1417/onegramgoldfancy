@@ -1,10 +1,32 @@
 const pool = require("../config/db");
 
-exports.createPayment = async ({ order_id, gateway, payment_id, status, amount }) => {
+/**
+ * Create order (Guest checkout – no login)
+ */
+exports.createOrder = async ({ grams, pricePerGram, totalAmount }) => {
   const res = await pool.query(
-    `INSERT INTO payments (order_id, payment_gateway, payment_id, status, amount)
-     VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-    [order_id, gateway, payment_id, status, amount]
+    `
+    INSERT INTO orders (user_id, grams, price_per_gram, total_amount)
+    VALUES ($1, $2, $3, $4)
+    RETURNING *
+    `,
+    [
+      null,          // user_id → guest checkout
+      grams,         // REQUIRED
+      pricePerGram,
+      totalAmount,
+    ]
   );
+
   return res.rows[0];
+};
+
+/**
+ * Admin: Get all orders
+ */
+exports.getAllOrders = async () => {
+  const res = await pool.query(
+    "SELECT * FROM orders ORDER BY created_at DESC"
+  );
+  return res.rows;
 };

@@ -3,47 +3,77 @@ import { createContext, useEffect, useState } from "react";
 export const AppContext = createContext(null);
 
 const AppProvider = ({ children }) => {
-  /* ------------------ UI STATE ------------------ */
+  /* ------------------ UI ------------------ */
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  /* ------------------ USER ------------------ */
-  const [user, setUser] = useState(null);
+  /* ------------------ USER (FUTURE LOGIN) ------------------ */
+  // Logged-in user (later)
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem("user");
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem("user", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("user");
+    }
+  }, [user]);
+
+  /* ------------------ GUEST (CURRENT FLOW) ------------------ */
+  // Used when user is NOT logged in
+  const [guest, setGuest] = useState(() => {
+    const saved = localStorage.getItem("guest");
+    return saved
+      ? JSON.parse(saved)
+      : { name: "", phone: "", address: "" };
+  });
+
+  const updateGuest = (data) => {
+    setGuest((prev) => ({ ...prev, ...data }));
+  };
+
+  useEffect(() => {
+    localStorage.setItem("guest", JSON.stringify(guest));
+  }, [guest]);
 
   /* ------------------ CART ------------------ */
   const [cart, setCart] = useState(() => {
-    const savedCart = localStorage.getItem("cart");
-    return savedCart ? JSON.parse(savedCart) : [];
+    const saved = localStorage.getItem("cart");
+    return saved ? JSON.parse(saved) : [];
   });
 
   const addToCart = (product) => {
     setCart((prev) => {
-      const existingItem = prev.find(
-        (item) => item.id === product.id
-      );
-
-      if (existingItem) {
-        return prev.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
+      const exists = prev.find((i) => i.id === product.id);
+      if (exists) {
+        return prev.map((i) =>
+          i.id === product.id
+            ? { ...i, quantity: i.quantity + 1 }
+            : i
         );
       }
-
       return [...prev, { ...product, quantity: 1 }];
     });
   };
 
   const removeFromCart = (id) => {
-    setCart((prev) => prev.filter((item) => item.id !== id));
+    setCart((prev) => prev.filter((i) => i.id !== id));
   };
 
   const updateQuantity = (id, quantity) => {
-    if (quantity <= 0) return;
+    if (quantity < 1) return;
     setCart((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, quantity } : item
+      prev.map((i) =>
+        i.id === id ? { ...i, quantity } : i
       )
     );
+  };
+
+  const clearCart = () => {
+    setCart([]);
+    localStorage.removeItem("cart");
   };
 
   const cartCount = cart.reduce(
@@ -57,14 +87,14 @@ const AppProvider = ({ children }) => {
 
   /* ------------------ WISHLIST ------------------ */
   const [wishlist, setWishlist] = useState(() => {
-    const savedWishlist = localStorage.getItem("wishlist");
-    return savedWishlist ? JSON.parse(savedWishlist) : [];
+    const saved = localStorage.getItem("wishlist");
+    return saved ? JSON.parse(saved) : [];
   });
 
   const toggleWishlist = (id) => {
     setWishlist((prev) =>
       prev.includes(id)
-        ? prev.filter((itemId) => itemId !== id)
+        ? prev.filter((i) => i !== id)
         : [...prev, id]
     );
   };
@@ -73,7 +103,7 @@ const AppProvider = ({ children }) => {
     localStorage.setItem("wishlist", JSON.stringify(wishlist));
   }, [wishlist]);
 
-  /* ------------------ PRODUCTS ------------------ */
+  /* ------------------ PRODUCTS (STATIC FOR NOW) ------------------ */
   const [products] = useState({
     panchalohalu: [
       {
@@ -131,12 +161,11 @@ const AppProvider = ({ children }) => {
           category: "panchalohalu",
         },
       ]);
-
       setLoadingProducts(false);
     }, 800);
   }, []);
 
-  /* ------------------ CONTEXT VALUE ------------------ */
+  /* ------------------ CONTEXT ------------------ */
   return (
     <AppContext.Provider
       value={{
@@ -144,9 +173,13 @@ const AppProvider = ({ children }) => {
         isMenuOpen,
         setIsMenuOpen,
 
-        /* User */
+        /* User (future) */
         user,
         setUser,
+
+        /* Guest (current) */
+        guest,
+        updateGuest,
 
         /* Cart */
         cart,
@@ -154,6 +187,7 @@ const AppProvider = ({ children }) => {
         addToCart,
         removeFromCart,
         updateQuantity,
+        clearCart,
 
         /* Wishlist */
         wishlist,

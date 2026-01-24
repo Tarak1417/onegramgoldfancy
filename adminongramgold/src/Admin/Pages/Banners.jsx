@@ -1,8 +1,12 @@
-import React, { useState } from "react";
-import { useAdmin } from "../../context/AdminContext";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { Trash2 } from "lucide-react";
+
+const API_URL = "http://localhost:5000/api/banners";
 
 const Banners = () => {
-  const { banners, addBanner, toggleBannerStatus, deleteBanner } = useAdmin();
+  const [banners, setBanners] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
     title: "",
@@ -11,133 +15,185 @@ const Banners = () => {
     imageFile: null,
   });
 
-  // Handle form input changes
+  /* ================= FETCH ================= */
+  const fetchBanners = async () => {
+    try {
+      const res = await axios.get(API_URL);
+      setBanners(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchBanners();
+  }, []);
+
+  /* ================= FORM ================= */
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
+    setForm((p) => ({ ...p, [name]: value }));
   };
 
-  // Handle image file selection
   const handleFileChange = (e) => {
-    setForm({ ...form, imageFile: e.target.files[0] });
+    setForm((p) => ({ ...p, imageFile: e.target.files[0] }));
   };
 
-  // Add new banner
-  const handleAddBanner = (e) => {
+  /* ================= ADD ================= */
+  const handleAddBanner = async (e) => {
     e.preventDefault();
-    if (!form.title || !form.paragraph || !form.buttonText || !form.imageFile) {
-      alert("Please fill all fields and select an image!");
-      return;
+
+    const formData = new FormData();
+    formData.append("title", form.title);
+    formData.append("paragraph", form.paragraph);
+    formData.append("button_text", form.buttonText);
+    formData.append("image", form.imageFile);
+
+    try {
+      setLoading(true);
+      await axios.post(API_URL, formData);
+      setForm({ title: "", paragraph: "", buttonText: "", imageFile: null });
+      fetchBanners();
+    } finally {
+      setLoading(false);
     }
-    addBanner({
-      title: form.title,
-      paragraph: form.paragraph,
-      buttonText: form.buttonText,
-      imageFile: form.imageFile,
-    });
-    setForm({ title: "", paragraph: "", buttonText: "", imageFile: null });
   };
 
+  /* ================= ACTIONS ================= */
+  const toggleStatus = async (id) => {
+    await axios.put(`${API_URL}/${id}`);
+    fetchBanners();
+  };
+
+  const deleteBanner = async (id) => {
+    if (!window.confirm("Delete this banner?")) return;
+    await axios.delete(`${API_URL}/${id}`);
+    fetchBanners();
+  };
+
+  /* ================= UI ================= */
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <h2 className="text-2xl font-bold">Banners</h2>
 
-      {/* Add Banner Form */}
+      {/* ============ ADD FORM ============ */}
       <form
         onSubmit={handleAddBanner}
-        className="bg-white p-6 rounded shadow space-y-4"
+        className="bg-white rounded-xl border p-6 space-y-4"
       >
         <h3 className="text-lg font-semibold">Add New Banner</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        <div className="grid md:grid-cols-2 gap-4">
           <input
-            type="text"
             name="title"
-            placeholder="Banner Title / Heading"
+            placeholder="Banner Title"
             value={form.title}
             onChange={handleChange}
-            className="border p-2 rounded"
+            className="border rounded-lg px-3 py-2"
             required
           />
+
           <input
-            type="text"
-            name="paragraph"
-            placeholder="Banner Paragraph / Description"
-            value={form.paragraph}
-            onChange={handleChange}
-            className="border p-2 rounded"
-            required
-          />
-          <input
-            type="text"
             name="buttonText"
             placeholder="Button Text"
             value={form.buttonText}
             onChange={handleChange}
-            className="border p-2 rounded"
+            className="border rounded-lg px-3 py-2"
             required
           />
+
+          <input
+            name="paragraph"
+            placeholder="Short Description"
+            value={form.paragraph}
+            onChange={handleChange}
+            className="border rounded-lg px-3 py-2 md:col-span-2"
+            required
+          />
+
           <input
             type="file"
             accept="image/*"
             onChange={handleFileChange}
-            className="border p-2 rounded"
+            className="border rounded-lg px-3 py-2 md:col-span-2"
             required
           />
         </div>
+
         <button
-          type="submit"
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          disabled={loading}
+          className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
         >
-          Add Banner
+          {loading ? "Adding..." : "Add Banner"}
         </button>
       </form>
 
-      {/* Banners List */}
-      <div className="space-y-4">
-        {banners.map((banner) => (
-          <div
-            key={banner.id}
-            className="flex flex-col sm:flex-row items-center justify-between p-4 bg-white rounded shadow gap-4"
-          >
-            <img
-              src={banner.image}
-              alt={banner.title}
-              className="h-24 w-64 object-cover rounded"
-            />
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold">{banner.title}</h3>
-              <p className="text-gray-600">{banner.paragraph}</p>
-              {banner.buttonText && (
-                <button className="mt-2 px-3 py-1 bg-blue-500 text-white rounded">
-                  {banner.buttonText}
-                </button>
-              )}
-            </div>
-            <span
-              className={`px-2 py-1 rounded font-semibold ${
-                banner.status === "Active"
-                  ? "bg-green-200 text-green-800"
-                  : "bg-red-200 text-red-800"
-              }`}
-            >
-              {banner.status}
-            </span>
-            <div className="flex gap-2">
-              <button
-                className="px-3 py-1 bg-yellow-500 text-white rounded"
-                onClick={() => toggleBannerStatus(banner.id)}
-              >
-                Toggle Status
-              </button>
-              <button
-                className="px-3 py-1 bg-red-500 text-white rounded"
-                onClick={() => deleteBanner(banner.id)}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        ))}
+      {/* ============ TABLE ============ */}
+      <div className="bg-white rounded-xl border overflow-hidden">
+        <table className="w-full table-auto">
+          <thead className="bg-gray-50 text-sm text-gray-700">
+            <tr>
+              <th className="px-4 py-3 text-left">Banner</th>
+              <th className="px-4 py-3">Button</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3 text-center">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody className="text-sm">
+            {banners.map((banner) => (
+              <tr key={banner.id} className="border-t hover:bg-gray-50">
+                <td className="px-4 py-3 flex items-center gap-4">
+                  <img
+                    src={`http://localhost:5000/${banner.image}`}
+                    alt={banner.title}
+                    className="w-24 h-14 rounded-lg object-cover border"
+                  />
+                  <div>
+                    <p className="font-medium">{banner.title}</p>
+                    <p className="text-xs text-gray-500 line-clamp-1">
+                      {banner.paragraph}
+                    </p>
+                  </div>
+                </td>
+
+                <td className="px-4 py-3">
+                  <span className="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold">
+                    {banner.button_text}
+                  </span>
+                </td>
+
+                <td className="px-4 py-3">
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={banner.status === "Active"}
+                      onChange={() => toggleStatus(banner.id)}
+                    />
+                    <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition"></div>
+                    <span className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition peer-checked:translate-x-5"></span>
+                  </label>
+                </td>
+
+                <td className="px-4 py-3 flex justify-center">
+                  <button
+                    onClick={() => deleteBanner(banner.id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {banners.length === 0 && (
+          <p className="p-6 text-center text-gray-500">
+            No banners added yet
+          </p>
+        )}
       </div>
     </div>
   );

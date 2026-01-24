@@ -1,11 +1,13 @@
 const pool = require("../config/db");
 
 exports.createProduct = async (data) => {
-  const { name, description, price, stock, image_url } = data;
+  const { name, description, price, stock, image_url, category, old_price, discount } = data;
+
   const result = await pool.query(
-    `INSERT INTO products (name, description, price, stock, image_url)
-     VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-    [name, description, price, stock, image_url]
+    `INSERT INTO products 
+      (name, description, price, stock, image_url, category, old_price, discount)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+    [name, description, price, stock, image_url, category, old_price, discount]
   );
   return result.rows[0];
 };
@@ -24,12 +26,13 @@ exports.getProductById = async (id) => {
 };
 
 exports.updateProduct = async (id, data) => {
-  const { name, description, price, stock, image_url } = data;
+  const { name, description, price, stock, image_url, category, old_price, discount } = data;
+
   const result = await pool.query(
     `UPDATE products
-     SET name=$1, description=$2, price=$3, stock=$4, image_url=$5
-     WHERE id=$6 RETURNING *`,
-    [name, description, price, stock, image_url, id]
+     SET name=$1, description=$2, price=$3, stock=$4, image_url=$5, category=$6, old_price=$7, discount=$8
+     WHERE id=$9 RETURNING *`,
+    [name, description, price, stock, image_url, category, old_price, discount, id]
   );
   return result.rows[0];
 };

@@ -1,9 +1,20 @@
 const express = require("express");
-const auth = require("../middleware/auth");
-const { createOrder, getMyOrders } = require("../controllers/order.controller");
 const router = express.Router();
 
-router.post("/", auth, createOrder);
-router.get("/my", auth, getMyOrders);
+const auth = require("../middleware/auth.middleware");
+const adminAuth = require("../middleware/admin.middleware");
+const orderController = require("../controllers/order.controller");
+
+// USER – CREATE ORDER
+router.post("/", auth, orderController.addOrder);
+
+// USER – GET OWN ORDERS
+router.get("/", auth, orderController.getOrders);
+
+// ADMIN – GET ALL ORDERS
+router.get("/admin", auth, adminAuth, orderController.getAllOrders);
+
+// ADMIN – UPDATE TRACKING INFO
+router.put("/:id/tracking", auth, adminAuth, orderController.updateTracking);
 
 module.exports = router;

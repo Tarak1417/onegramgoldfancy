@@ -3,7 +3,7 @@ const cloudinary = require("../config/cloudinary");
 
 exports.addProduct = async (req, res) => {
   try {
-    const { name, description, price, stock } = req.body;
+    const { name, description, price, stock, category, old_price, discount } = req.body;
 
     const image_url = req.file ? req.file.path : null;
 
@@ -12,7 +12,10 @@ exports.addProduct = async (req, res) => {
       description,
       price,
       stock,
-      image_url
+      image_url,
+      category,
+      old_price,
+      discount,
     });
 
     res.status(201).json(product);
@@ -20,7 +23,6 @@ exports.addProduct = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
 
 exports.getProducts = async (req, res) => {
   try {
@@ -42,14 +44,11 @@ exports.getSingleProduct = async (req, res) => {
 
 exports.editProduct = async (req, res) => {
   try {
-    const { name, description, price, stock } = req.body;
+    const { name, description, price, stock, category, old_price, discount } = req.body;
 
-    // Build update object
-    const data = { name, description, price, stock };
+    const data = { name, description, price, stock, category, old_price, discount };
 
-    // If new image uploaded, upload to Cloudinary
     if (req.file) {
-      // Optional: Delete old image from Cloudinary here if needed
       data.image_url = req.file.path;
     }
 
@@ -62,16 +61,12 @@ exports.editProduct = async (req, res) => {
 
 exports.removeProduct = async (req, res) => {
   try {
-    // Fetch product to get image_url
     const product = await Product.getProductById(req.params.id);
 
     if (product && product.image_url) {
-      // Extract public_id from Cloudinary URL
       const segments = product.image_url.split("/");
       const public_id_with_ext = segments[segments.length - 1];
       const public_id = public_id_with_ext.split(".")[0];
-
-      // Delete from Cloudinary
       await cloudinary.uploader.destroy(`products/${public_id}`);
     }
 
@@ -81,4 +76,3 @@ exports.removeProduct = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-

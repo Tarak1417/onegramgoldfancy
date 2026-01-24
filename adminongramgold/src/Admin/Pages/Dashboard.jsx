@@ -1,99 +1,88 @@
+import React, { useEffect } from "react";
 import { useAdmin } from "../../context/AdminContext";
 
 const Dashboard = () => {
-  const { products, orders, customers } = useAdmin();
+  const { orders, loadingOrders, fetchOrders, products } = useAdmin();
 
-  // Count orders by status
-  const newOrders = orders.filter((o) => o.status === "New").length;
-  const completedOrders = orders.filter((o) => o.status === "Completed").length;
-  const ongoingOrders = orders.filter((o) => o.status === "Ongoing").length;
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
 
-  // Recent 5 orders
-  const recentOrders = [...orders].sort((a, b) => b.id - a.id).slice(0, 5);
+  const totalRevenue = orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+  const recentOrders = orders.slice(0, 3); // ✅ Only show 3 most recent orders
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Dashboard</h1>
+    <div className="p-6 bg-gray-100 min-h-screen">
+      {/* Title */}
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">Admin Dashboard</h1>
 
-      {/* Top Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-        <Card title="Products" value={products.length} />
-        <Card title="New Orders" value={newOrders} color="blue" />
-        <Card title="Completed Orders" value={completedOrders} color="green" />
-        <Card title="Customers" value={customers.length} color="purple" />
-      </div>
-
-      {/* Orders Progress */}
-      <div className="bg-white p-6 rounded shadow">
-        <h2 className="text-xl font-semibold mb-4">Orders Progress</h2>
-        <ProgressBar label="Ongoing Orders" value={ongoingOrders} max={orders.length} color="yellow" />
-        <ProgressBar label="Completed Orders" value={completedOrders} max={orders.length} color="green" />
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="bg-white rounded-xl shadow-md p-5 hover:shadow-xl transition-shadow">
+          <p className="text-gray-500 text-sm">Total Revenue</p>
+          <h2 className="text-2xl font-semibold mt-1">₹{totalRevenue}</h2>
+        </div>
+        <div className="bg-white rounded-xl shadow-md p-5 hover:shadow-xl transition-shadow">
+          <p className="text-gray-500 text-sm">Total Orders</p>
+          <h2 className="text-2xl font-semibold mt-1">{orders.length}</h2>
+        </div>
+        <div className="bg-white rounded-xl shadow-md p-5 hover:shadow-xl transition-shadow">
+          <p className="text-gray-500 text-sm">Total Products</p>
+          <h2 className="text-2xl font-semibold mt-1">{products.length}</h2>
+        </div>
+        <div className="bg-white rounded-xl shadow-md p-5 hover:shadow-xl transition-shadow">
+          <p className="text-gray-500 text-sm">Customers</p>
+          <h2 className="text-2xl font-semibold mt-1">—</h2>
+        </div>
       </div>
 
       {/* Recent Orders Table */}
-      <div className="bg-white p-6 rounded shadow">
+      <div className="bg-white rounded-xl shadow-md p-5 overflow-x-auto">
         <h2 className="text-xl font-semibold mb-4">Recent Orders</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b">
-                <th className="px-4 py-2">Order ID</th>
-                <th className="px-4 py-2">Customer</th>
-                <th className="px-4 py-2">Total</th>
-                <th className="px-4 py-2">Status</th>
+        {loadingOrders ? (
+          <p>Loading orders...</p>
+        ) : recentOrders.length === 0 ? (
+          <p>No recent orders.</p>
+        ) : (
+          <table className="min-w-full border border-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="text-left px-4 py-2 text-gray-600 font-medium">#</th>
+                <th className="text-left px-4 py-2 text-gray-600 font-medium">Customer</th>
+                <th className="text-left px-4 py-2 text-gray-600 font-medium">Phone</th>
+                <th className="text-left px-4 py-2 text-gray-600 font-medium">Grams</th>
+                <th className="text-left px-4 py-2 text-gray-600 font-medium">Total</th>
+                <th className="text-left px-4 py-2 text-gray-600 font-medium">Status</th>
+                <th className="text-left px-4 py-2 text-gray-600 font-medium">Date</th>
               </tr>
             </thead>
             <tbody>
-              {recentOrders.map((order) => (
-                <tr key={order.id} className="border-b hover:bg-gray-50">
-                  <td className="px-4 py-2">{order.id}</td>
-                  <td className="px-4 py-2">{order.customer}</td>
-                  <td className="px-4 py-2">₹{order.total}</td>
+              {recentOrders.map((o, i) => (
+                <tr key={o.id} className="border-t hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-2">{i + 1}</td>
+                  <td className="px-4 py-2">{o.customer}</td>
+                  <td className="px-4 py-2">{o.phone}</td>
+                  <td className="px-4 py-2">{o.grams}g</td>
+                  <td className="px-4 py-2">₹{o.total}</td>
                   <td className="px-4 py-2">
                     <span
-                      className={`px-2 py-1 rounded text-white ${
-                        order.status === "New"
-                          ? "bg-blue-500"
-                          : order.status === "Completed"
-                          ? "bg-green-500"
-                          : "bg-yellow-500"
+                      className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${
+                        o.status === "pending"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : o.status === "completed"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
                       }`}
                     >
-                      {order.status}
+                      {o.status}
                     </span>
                   </td>
+                  <td className="px-4 py-2">{new Date(o.createdAt).toLocaleDateString()}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Stat Card
-const Card = ({ title, value, color = "gray" }) => (
-  <div className={`bg-white p-6 rounded shadow border-l-4 border-${color}-500`}>
-    <p className="text-gray-500">{title}</p>
-    <h3 className="text-2xl font-bold">{value}</h3>
-  </div>
-);
-
-// Progress Bar
-const ProgressBar = ({ label, value, max, color = "blue" }) => {
-  const percentage = max ? Math.round((value / max) * 100) : 0;
-  return (
-    <div className="mb-4">
-      <div className="flex justify-between mb-1">
-        <span>{label}</span>
-        <span>{value} / {max}</span>
-      </div>
-      <div className="w-full bg-gray-200 h-4 rounded">
-        <div
-          className={`h-4 rounded bg-${color}-500`}
-          style={{ width: `${percentage}%` }}
-        ></div>
+        )}
       </div>
     </div>
   );

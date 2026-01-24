@@ -1,155 +1,162 @@
-// src/context/AdminContext.jsx
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 
+/* =====================================================
+   CONTEXT
+===================================================== */
 const AdminContext = createContext();
 export const useAdmin = () => useContext(AdminContext);
 
+const API_URL = "http://localhost:5000/api";
+
+/* =====================================================
+   PROVIDER
+===================================================== */
 const AdminProvider = ({ children }) => {
-  //  Products code here 
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: "Gold Chain",
-      category: "Chains",
-      price: 2500,
-      oldPrice: 3000,
-      discount: 17,
-      stock: 10,
-      status: "Active",
-      image: "https://via.placeholder.com/100",
-    },
-    {
-      id: 2,
-      name: "Panchalohalu Haram",
-      category: "Harams",
-      price: 4800,
-      oldPrice: 5500,
-      discount: 13,
-      stock: 0,
-      status: "Inactive",
-      image: "https://via.placeholder.com/100",
-    },
-  ]);
+  /* ================= TOKEN ================= */
+  const getToken = () => localStorage.getItem("token");
 
-  // Add product with local image file support
-  const addProduct = ({ name, category, price, oldPrice, stock, imageFile }) => {
-    const id = products.length + 1;
-    const discount = oldPrice ? Math.round(((oldPrice - price) / oldPrice) * 100) : 0;
-    const image = imageFile ? URL.createObjectURL(imageFile) : "https://via.placeholder.com/100";
+  /* =====================================================
+     PRODUCTS
+  ===================================================== */
+  const [products, setProducts] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
 
-    setProducts((prev) => [
-      ...prev,
-      {
-        id,
-        name,
-        category,
-        price: Number(price),
-        oldPrice: oldPrice ? Number(oldPrice) : null,
-        discount,
-        stock: Number(stock),
-        status: Number(stock) > 0 ? "Active" : "Inactive",
-        image,
-      },
-    ]);
-  };
+  const fetchProducts = useCallback(async () => {
+    const token = getToken();
+    if (!token) return;
 
-  // Toggle product stock status
-  const toggleProductStock = (id) =>
-    setProducts((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? { ...p, status: p.status === "Active" ? "Inactive" : "Active" }
-          : p
-      )
-    );
+    try {
+      setLoadingProducts(true);
 
-  // Delete product
-  const deleteProduct = (id) => setProducts((prev) => prev.filter((p) => p.id !== id));
+      const res = await fetch(`${API_URL}/products`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-  // -------------------- CATEGORIES --------------------
-  const [categories, setCategories] = useState(["Chains", "Harams", "Rings", "Bangles"]);
-  const addCategory = (name) => setCategories((prev) => [...prev, name]);
-  const deleteCategory = (name) => setCategories((prev) => prev.filter((c) => c !== name));
+      if (!res.ok) throw new Error("Failed to fetch products");
 
-  // -------------------- ORDERS --------------------
-  const [orders, setOrders] = useState([
-    { id: 101, customer: "Ravi", total: 2500, status: "New" },
-    { id: 102, customer: "Sita", total: 4800, status: "Shipped" },
-  ]);
-  const updateOrderStatus = (id, status) =>
-    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
+      const data = await res.json();
 
-  // -------------------- CUSTOMERS --------------------
-  const [customers] = useState([
-    { id: 1, name: "Ravi", phone: "9999999999" },
-    { id: 2, name: "Sita", phone: "8888888888" },
-  ]);
+      // ✅ Map products to ensure all fields exist
+      const formatted = data.map((p) => ({
+        id: p.id,
+        name: p.name || "Unnamed Product",
+        category: p.category || "Uncategorized",
+        price: Number(p.price) || 0,
+        oldPrice: p.old_price ? Number(p.old_price) : null,
+        stock: Number(p.stock) || 0,
+        status: p.status || (p.stock > 0 ? "Active" : "Inactive"),
+        image: p.image || "https://via.placeholder.com/120",
+      }));
 
-  // -------------------- OFFERS --------------------
-  const [offers, setOffers] = useState([{ id: 1, title: "10% Festival Offer" }]);
-  const addOffer = (offer) => setOffers((prev) => [...prev, offer]);
-  const deleteOffer = (id) => setOffers((prev) => prev.filter((o) => o.id !== id));
+      setProducts(formatted);
+    } catch (err) {
+      console.error("Fetch products error:", err);
+    } finally {
+      setLoadingProducts(false);
+    }
+  }, []);
 
-  // -------------------- BANNERS --------------------
-  const [banners, setBanners] = useState([
-    {
-      id: 1,
-      title: "Diwali Sale Banner",
-      image: "https://via.placeholder.com/400x150?text=Diwali+Sale",
-      status: "Active",
-    },
-    {
-      id: 2,
-      title: "Summer Offer",
-      image: "https://via.placeholder.com/400x150?text=Summer+Offer",
-      status: "Inactive",
-    },
-  ]);
+  /* =====================================================
+     BANNERS
+  ===================================================== */
+  const [banners, setBanners] = useState([]);
+  const [loadingBanners, setLoadingBanners] = useState(false);
 
-  // Add banner with local image file
-  const addBanner = ({ title, imageFile }) => {
-    const id = banners.length + 1;
-    const image = imageFile ? URL.createObjectURL(imageFile) : "https://via.placeholder.com/400x150";
-    setBanners((prev) => [...prev, { id, title, image, status: "Active" }]);
-  };
+  const fetchBanners = useCallback(async () => {
+    const token = getToken();
+    if (!token) return;
 
-  // Toggle banner status
-  const toggleBannerStatus = (id) =>
-    setBanners((prev) =>
-      prev.map((b) =>
-        b.id === id ? { ...b, status: b.status === "Active" ? "Inactive" : "Active" } : b
-      )
-    );
+    try {
+      setLoadingBanners(true);
 
-  // Delete banner
-  const deleteBanner = (id) => setBanners((prev) => prev.filter((b) => b.id !== id));
+      const res = await fetch(`${API_URL}/banners`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
+      if (!res.ok) throw new Error("Failed to fetch banners");
+
+      const data = await res.json();
+      setBanners(data);
+    } catch (err) {
+      console.error("Fetch banners error:", err);
+    } finally {
+      setLoadingBanners(false);
+    }
+  }, []);
+
+  /* =====================================================
+     ORDERS (ADMIN ONLY)
+  ===================================================== */
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+
+  const fetchOrders = useCallback(async () => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      setLoadingOrders(true);
+
+      const res = await fetch(`${API_URL}/orders/admin`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch orders");
+
+      const data = await res.json();
+
+      // Map orders for consistent frontend structure
+      const formatted = data.map((o) => ({
+        id: o.id,
+        customer: o.customer_name || "Guest",
+        phone: o.phone || "-",
+        address: o.address || "-",
+        grams: o.grams || 0,
+        total: o.total_amount || 0,
+        status: o.status || "Pending",
+        createdAt: o.created_at || new Date().toISOString(),
+      }));
+
+      setOrders(formatted);
+    } catch (err) {
+      console.error("Fetch orders error:", err);
+    } finally {
+      setLoadingOrders(false);
+    }
+  }, []);
+
+  /* =====================================================
+     INITIAL LOAD
+  ===================================================== */
+  useEffect(() => {
+    fetchProducts();
+    fetchBanners();
+    fetchOrders();
+  }, [fetchProducts, fetchBanners, fetchOrders]);
+
+  /* =====================================================
+     CONTEXT VALUE
+  ===================================================== */
   return (
     <AdminContext.Provider
       value={{
-        // Products
+        /* PRODUCTS */
         products,
-        addProduct,
-        toggleProductStock,
-        deleteProduct,
-        // Categories
-        categories,
-        addCategory,
-        deleteCategory,
-        // Orders
-        orders,
-        updateOrderStatus,
-        // Customers
-        customers,
-        // Offers
-        offers,
-        addOffer,
-        deleteOffer,
-        // Banners
+        loadingProducts,
+        fetchProducts,
+        setProducts,
+
+        /* BANNERS */
         banners,
-        addBanner,
-        toggleBannerStatus,
-        deleteBanner,
+        loadingBanners,
+        fetchBanners,
+        setBanners,
+
+        /* ORDERS */
+        orders,
+        loadingOrders,
+        fetchOrders,
+        setOrders,
       }}
     >
       {children}

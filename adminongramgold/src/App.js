@@ -1,5 +1,10 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import AdminLayout from "./Admin/AdminLayout";
+
+// Context
+import AdminProvider from "./context/AdminContext";
+
+// Pages
+import AdminLogin from "./Admin/Pages/Login";
 import Dashboard from "./Admin/Pages/Dashboard";
 import Products from "./Admin/Pages/Products";
 import Categories from "./Admin/Pages/Categories";
@@ -10,29 +15,44 @@ import Inventory from "./Admin/Pages/Inventory";
 import Banners from "./Admin/Pages/Banners";
 import Reports from "./Admin/Pages/Reports";
 import Settings from "./Admin/Pages/Settings";
-import AdminProvider from "./context/AdminContext";
 
-function App() {
+// Components
+import AdminProtectedRoute from "./Admin/Components/AdminProtectedRoute";
+import AdminLayout from "./Admin/AdminLayout";
+
+const App = () => {
   return (
     <AdminProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/admin" element={<AdminLayout />}>
+          {/* Public login */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+
+          {/* Admin routes */}
+          <Route
+            path="/admin"
+            element={
+              <AdminProtectedRoute>
+                <AdminLayout />
+              </AdminProtectedRoute>
+            }
+          >
             <Route index element={<Dashboard />} />
-            <Route path="/admin/products" element={<Products />} />
-            <Route path="/admin/categories" element={<Categories />} />
-            <Route path="/admin/orders" element={<Orders />} />
-            <Route path="/admin/customers" element={<Customers />} />
-            <Route path="/admin/offers" element={<Offers />} />
-            <Route path="/admin/inventory" element={<Inventory />} />
-            <Route path="/admin/banners" element={<Banners />} />
-            <Route path="/admin/reports" element={<Reports />} />
-            <Route path="/admin/settings" element={<Settings />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="products" element={<Products />} />
+            <Route path="categories" element={<Categories />} />
+            <Route path="orders" element={<Orders />} />
+            <Route path="customers" element={<Customers />} />
+            <Route path="offers" element={<Offers />} />
+            <Route path="inventory" element={<Inventory />} />
+            <Route path="banners" element={<Banners />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>
       </BrowserRouter>
     </AdminProvider>
   );
-}
+};
 
 export default App;

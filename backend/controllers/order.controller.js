@@ -1,20 +1,92 @@
-const Order = require("../models/order.model");
+const pool = require("../config/db");
 
-exports.createOrder = async (req, res) => {
-  const { grams, price_per_gram } = req.body;
+/**
+ * USER – CREATE ORDER
+ */
+exports.addOrder = async (req, res) => {
   try {
-    const order = await Order.createOrder(req.user.id, grams, price_per_gram);
-    res.status(201).json(order);
+    const userId = req.user.id;
+    const { grams, total_amount, address, customer_name, phone } = req.body;
+
+    if (!grams || !total_amount || !address || !customer_name || !phone) {
+      return res.status(400).json({ error: "Required fields missing" });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO orders
+       (user_id, grams, total_amount, address, customer_name, phone)
+       VALUES ($1,$2,$3,$4,$5,$6)
+       RETURNING *`,
+      [userId, grams, total_amount, address, customer_name, phone]
+    );
+
+    res.status(201).json(result.rows[0]);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("ORDER CREATE ERROR:", err);
+    res.status(500).json({ error: "Failed to create order" });
   }
 };
 
-exports.getMyOrders = async (req, res) => {
+/**
+ * USER – GET OWN ORDERS
+ */
+exports.getOrders = async (req, res) => {
   try {
-    const orders = await Order.getUserOrders(req.user.id);
-    res.json(orders);
+    const userId = req.user.id;
+
+    const result = await pool.query(
+      "SELECT * FROM orders WHERE user_id=$1 ORDER BY created_at DESC",
+      [userId]
+    );
+
+    res.json(result.rows);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Failed to fetch orders" });
+  }
+};
+
+/**
+ * ADMIN – GET ALL ORDERS
+ */
+exports.getAllOrders = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        o.*,
+        u.email
+      FROM orders o
+      LEFT JOIN users u ON u.id = o.user_id
+      ORDER BY o.created_at DESC
+    `);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("ADMIN FETCH ORDERS ERROR:", err);
+    res.status(500).json({ error: "Failed to fetch admin orders" });
+  }
+};
+
+/**
+ * ADMIN – UPDATE TRACKING INFO
+ */
+exports.updateTracking = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { tracking_id, courier_name, status } = req.body;
+
+    const result = await pool.query(
+      `UPDATE orders
+       SET tracking_id = $1,
+           courier_name = $2,
+           status = $3
+       WHERE id = $4
+       RETURNING *`,
+      [tracking_id, courier_name, status, id]
+    );
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("UPDATE TRACKING ERROR:", err);
+    res.status(500).json({ error: "Failed to update tracking info" });
   }
 };

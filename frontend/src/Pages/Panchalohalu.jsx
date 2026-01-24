@@ -5,112 +5,147 @@ import { AppContext } from "../context/AppContext";
 import { Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-
 const Panchalohalu = () => {
   const context = useContext(AppContext);
-    const navigate = useNavigate();
-  
+  const navigate = useNavigate();
 
-  // SAFETY CHECK
   if (!context || !context.products) {
-    return <div className="pt-24 text-center">Loading...</div>;
+    return (
+      <div className="pt-24 text-center text-gray-500">
+        Loading collection...
+      </div>
+    );
   }
 
-  const {
-    products,
-    addToCart,
-    wishlist,
-    toggleWishlist,
-  } = context;
-
+  const { products, addToCart, wishlist, toggleWishlist } = context;
   const panchalohaluProducts = products?.panchalohalu || [];
 
   return (
-    <div className="bg-[#fafafa] min-h-screen">
+    <div className="bg-gradient-to-b from-[#FAFAFA] to-[#F2F2F2] min-h-screen">
       <Navbar />
 
-      <div className="pt-[70px] px-4 max-w-7xl mx-auto">
+      <div className="pt-[75px] px-4 max-w-7xl mx-auto">
 
-        <div className="max-w-md mx-auto mb-4 flex items-center">
+        {/* Back */}
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center  text-yellow-400 hover:text-yellow-500 transition"
+          className="flex items-center gap-1 text-[#B08A2E] hover:text-[#C9A24D] transition mb-4"
         >
-          {/* Back Icon */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
+            className="h-4 w-4"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          <span className="text-sm font-medium">Back</span>
+          <span className="text-xs font-medium">Back</span>
         </button>
-      </div>
 
         <Category />
 
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">
-          Panchalohalu Collection
-        </h1>
+        {/* Heading */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">
+            Panchalohalu Collection
+          </h1>
+          <p className="text-xs text-gray-500 mt-1">
+            Divine metals · Temple craftsmanship
+          </p>
+        </div>
 
+        {/* Grid */}
         {panchalohaluProducts.length === 0 ? (
           <p className="text-center text-gray-500">
             No products available
           </p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {panchalohaluProducts.map((product) => (
               <div
                 key={product.id}
-                className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
+                className="
+                  group bg-white
+                  rounded-2xl overflow-hidden
+                  border border-gray-100
+                  shadow-sm hover:shadow-lg
+                  transition-all duration-300
+                "
               >
                 {/* Image */}
-                <div className="relative">
+                <div className="relative overflow-hidden">
                   <img
                     src={product.image}
                     alt={product.name}
-                    className="h-44 w-full object-cover hover:scale-105 transition-transform duration-500"
+                    className="
+                      h-36 sm:h-40 w-full object-cover
+                      group-hover:scale-105
+                      transition-transform duration-500
+                    "
                   />
 
                   {/* Wishlist */}
                   <button
                     onClick={() => toggleWishlist(product.id)}
-                    className="absolute top-3 right-3 bg-white/90 p-2 rounded-full shadow"
+                    className="
+                      absolute top-2 right-2
+                      bg-white/80 backdrop-blur
+                      p-1.5 rounded-full
+                      shadow
+                      hover:scale-110 transition
+                    "
                   >
                     <Heart
-                      size={18}
+                      size={16}
                       className={
                         wishlist.includes(product.id)
                           ? "fill-red-500 text-red-500"
-                          : "text-gray-600"
+                          : "text-gray-700"
                       }
                     />
                   </button>
                 </div>
 
-                {/* Details */}
-                <div className="p-3 space-y-2">
-                  <h2 className="text-sm font-semibold text-gray-800 truncate">
+                {/* Content */}
+                <div className="p-3 space-y-1.5">
+                  <h2 className="text-xs font-semibold text-gray-900 line-clamp-2">
                     {product.name}
                   </h2>
 
-                  <p className="text-lg font-bold text-yellow-600">
+                  <p className="text-sm font-bold text-[#B08A2E]">
                     ₹{product.price}
                   </p>
 
+                  {/* Buttons */}
                   <div className="flex gap-2 pt-2">
                     <button
                       onClick={() => addToCart(product)}
-                      className="flex-1 py-2 text-xs rounded-xl border border-yellow-500 text-yellow-600 font-semibold hover:bg-yellow-50"
+                      className="
+                        flex-1 py-1.5
+                        text-[11px] font-semibold
+                        rounded-lg
+                        border border-[#C9A24D]
+                        text-[#C9A24D]
+                        hover:bg-[#FAF3E0]
+                        transition
+                      "
                     >
-                      Add to Cart
+                      Cart
                     </button>
 
-                    <button className="flex-1 py-2 text-xs rounded-xl bg-yellow-500 text-black font-semibold hover:bg-yellow-600">
-                      Buy Now
+                    <button
+                      className="
+                        flex-1 py-1.5
+                        text-[11px] font-semibold
+                        rounded-lg
+                        bg-gradient-to-r from-[#C9A24D] to-[#B08A2E]
+                        text-white
+                        hover:opacity-90
+                        transition
+                      "
+                    >
+                      Buy
                     </button>
                   </div>
                 </div>
@@ -119,8 +154,9 @@ const Panchalohalu = () => {
           </div>
         )}
 
-        <div className="mt-10 text-center text-sm text-gray-500">
-          ✨ Authentic Panchalohalu · Premium Finish · Temple Certified
+        {/* Footer */}
+        <div className="mt-12 text-center text-xs text-gray-500">
+          ✨ Authentic Panchalohalu · Premium Finish
         </div>
       </div>
     </div>

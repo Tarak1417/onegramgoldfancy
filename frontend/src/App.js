@@ -19,6 +19,7 @@ import OrderSuccess from "./Pages/OrderSuccess"; // ✅ ADD THIS
 // ---------- UTILS ----------
 import ProtectedRoute from "./Components/ProtectedRoute";
 import ProductDetails from "./Pages/ProductDetails";
+import Hero from "./Components/Hero";
 
 const App = () => {
   return (
@@ -28,6 +29,7 @@ const App = () => {
       <Route path="/category/panchalohalu" element={<Panchalohalu />} />
       <Route path="/product/:id" element={<ProductDetails />} />
       <Route path="/category/one-gram-gold" element={<Onegramgold />} />
+      <Route path="/about" element={<Hero />} />
 
       {/* ================= AUTH ================= */}
       <Route path="/login" element={<Login />} />
